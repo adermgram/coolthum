@@ -242,18 +242,23 @@
   /* reasons / flip cards */
   .reasons{
     margin-top:22px;
-    display:grid;
-    grid-template-columns:1fr 1fr;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
     gap:14px;
   }
   .reason{
+    flex:0 1 calc(50% - 7px);
+    min-width:140px;
     background: linear-gradient(160deg,#fff, var(--blush) 140%);
     border-radius:18px;
     padding:18px 14px;
     text-align:center;
     box-shadow:0 10px 24px -14px rgba(91,58,82,.3);
     border:1px solid rgba(255,255,255,.7);
+    transition: transform .2s ease;
   }
+  .reason:active{ transform: scale(.96); }
   .reason .emoji{font-size:26px;display:block;margin-bottom:8px;}
   .reason p{font-size:13.3px;line-height:1.5;margin:0;color:var(--ink);}
 
@@ -278,7 +283,7 @@
     box-shadow: var(--shadow);
     border:5px solid #fff;
     background:#fff;
-    transition: transform .35s ease;
+    transition: transform .35s ease, opacity .35s ease;
   }
   .gal-item img{width:100%;display:block;aspect-ratio:4/5;object-fit:cover;}
   .gal-dots{display:flex;justify-content:center;gap:6px;margin-top:4px;}
@@ -339,11 +344,102 @@
   @media (min-width:520px){
     .gal-item{width:280px;}
   }
+
+  /* ambient blobs */
+  .blob{
+    position:fixed;
+    width:50vw;height:50vw;
+    max-width:420px;max-height:420px;
+    border-radius:50%;
+    filter:blur(70px);
+    opacity:.45;
+    z-index:0;
+    pointer-events:none;
+    animation: drift 22s ease-in-out infinite;
+  }
+  .blob.b1{background:var(--blush-deep); top:-10%; left:-15%;}
+  .blob.b2{background:var(--gold-soft); top:40%; right:-20%; animation-duration:28s; animation-delay:-6s;}
+  .blob.b3{background:var(--rose); bottom:-15%; left:10%; opacity:.3; animation-duration:26s; animation-delay:-12s;}
+  @keyframes drift{
+    0%,100%{transform:translate(0,0) scale(1);}
+    33%{transform:translate(4%,6%) scale(1.08);}
+    66%{transform:translate(-5%,-4%) scale(.96);}
+  }
+
+  /* shimmer title */
+  .hero h1 em{
+    background-size:200% auto;
+    animation: shimmer 5s linear infinite;
+  }
+  @keyframes shimmer{
+    0%{background-position:0% center;}
+    100%{background-position:200% center;}
+  }
+
+  /* scroll reveal */
+  .reveal{
+    opacity:0;
+    transform: translateY(26px);
+    transition: opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1);
+  }
+  .reveal.in{opacity:1; transform:none;}
+
+  /* ornament divider */
+  .ornament{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    margin-bottom:14px; opacity:.6;
+  }
+  .ornament::before, .ornament::after{
+    content:"";
+    width:28px; height:1px;
+    background: linear-gradient(90deg, transparent, var(--rose));
+  }
+  .ornament::after{ background: linear-gradient(90deg, var(--rose), transparent); }
+  .ornament span{ color:var(--gold); font-size:13px; }
+
+  /* gallery nav + hint + cover-flow */
+  .gallery-wrap{ position:relative; }
+  .gal-arrow{
+    position:absolute; top:42%; transform:translateY(-50%);
+    width:38px; height:38px; border-radius:50%;
+    background:rgba(255,255,255,.85);
+    border:1px solid rgba(255,255,255,.9);
+    box-shadow: 0 8px 20px -8px rgba(91,58,82,.4);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; color:var(--plum);
+    z-index:5; cursor:pointer;
+    transition: transform .2s ease, opacity .3s ease;
+  }
+  .gal-arrow:active{ transform:translateY(-50%) scale(.88); }
+  .gal-arrow.prev{ left:-6px; }
+  .gal-arrow.next{ right:-6px; }
+  .swipe-hint{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    margin:2px 0 10px;
+    font-size:12.5px; letter-spacing:.5px;
+    color:var(--rose);
+    transition: opacity .5s ease;
+  }
+  .swipe-hint .hand{
+    display:inline-block;
+    animation: swipeMove 1.6s ease-in-out infinite;
+    font-size:15px;
+  }
+  @keyframes swipeMove{
+    0%,100%{ transform:translateX(0); }
+    50%{ transform:translateX(10px); }
+  }
+  .swipe-hint.faded{ opacity:0; }
+  .gal-item{ transform:scale(.93); opacity:.72; }
+  .gal-item.active-card{ transform:scale(1.04); opacity:1; }
 </style>
 </head>
 <body>
 
 <div id="hearts"></div>
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
 
 <!-- ENVELOPE GATE -->
 <div id="gate">
@@ -366,14 +462,15 @@
   <section class="hero wrap">
     <span class="eyebrow">Just because you deserve it</span>
     <h1>Hi <em>Coolthum</em> 🤍</h1>
-    <div class="names">Ummukhulthm Mahmud · aka Coolthum · aka Ummu</div>
+    <div class="names">Ummukhulthm Mahmud · aka Coolthum</div>
     <div class="hero-portrait">
       <img src="assets/img/07-henna.jpg" alt="Coolthum smiling" loading="eager">
     </div>
     <div class="scroll-cue">keep scrolling<span>↓</span></div>
   </section>
 
-  <section class="wrap">
+  <section class="wrap reveal">
+    <div class="ornament"><span>✦</span></div>
     <span class="section-kicker">A note, no apologies here</span>
     <h2 class="section-title">Just a few things<br>I want you to know</h2>
     <div class="card note" style="margin-top:22px;">
@@ -384,7 +481,8 @@
     </div>
   </section>
 
-  <section class="wrap">
+  <section class="wrap reveal">
+    <div class="ornament"><span>✦</span></div>
     <span class="section-kicker">Little reasons</span>
     <h2 class="section-title">Why you, Coolthum?</h2>
     <div class="reasons">
@@ -392,29 +490,35 @@
       <div class="reason"><span class="emoji">🫶</span><p>You care about people so deeply, it's rare</p></div>
       <div class="reason"><span class="emoji">✨</span><p>You light up every room without even trying</p></div>
       <div class="reason"><span class="emoji">💅</span><p>Your style is unmatched, every single time</p></div>
-      <div class="reason"><span class="emoji">🧠</span><p>You're sharp, witty, and never boring</p></div>
       <div class="reason"><span class="emoji">🤍</span><p>You're simply you — and that's more than enough</p></div>
     </div>
   </section>
 
-  <section class="wrap">
+  <section class="wrap reveal">
+    <div class="ornament"><span>✦</span></div>
     <span class="section-kicker">Swipe through</span>
     <h2 class="section-title">A few favorite moments</h2>
-    <div class="gallery-scroller" id="gallery">
-      <div class="gal-item"><img src="assets/img/01-cake.jpg" loading="lazy" alt=""></div>
-      <div class="gal-item"><img src="assets/img/03-red.jpg" loading="lazy" alt=""></div>
-      <div class="gal-item"><img src="assets/img/08-purple-gown.jpg" loading="lazy" alt=""></div>
-      <div class="gal-item"><img src="assets/img/04-denim-smile.jpg" loading="lazy" alt=""></div>
-      <div class="gal-item"><img src="assets/img/02-closeup.jpg" loading="lazy" alt=""></div>
-      <div class="gal-item"><img src="assets/img/09-sunglasses.jpg" loading="lazy" alt=""></div>
-      <div class="gal-item"><img src="assets/img/05-denim-profile.jpg" loading="lazy" alt=""></div>
-      <div class="gal-item"><img src="assets/img/06-denim-stand.jpg" loading="lazy" alt=""></div>
-      <div class="gal-item"><img src="assets/img/10-bw.jpg" loading="lazy" alt=""></div>
+    <div class="swipe-hint" id="swipeHint"><span class="hand">👉</span> swipe to see more</div>
+    <div class="gallery-wrap">
+      <div class="gal-arrow prev" id="galPrev">‹</div>
+      <div class="gallery-scroller" id="gallery">
+        <div class="gal-item"><img src="assets/img/01-cake.jpg" loading="lazy" alt=""></div>
+        <div class="gal-item"><img src="assets/img/03-red.jpg" loading="lazy" alt=""></div>
+        <div class="gal-item"><img src="assets/img/08-purple-gown.jpg" loading="lazy" alt=""></div>
+        <div class="gal-item"><img src="assets/img/04-denim-smile.jpg" loading="lazy" alt=""></div>
+        <div class="gal-item"><img src="assets/img/02-closeup.jpg" loading="lazy" alt=""></div>
+        <div class="gal-item"><img src="assets/img/09-sunglasses.jpg" loading="lazy" alt=""></div>
+        <div class="gal-item"><img src="assets/img/05-denim-profile.jpg" loading="lazy" alt=""></div>
+        <div class="gal-item"><img src="assets/img/06-denim-stand.jpg" loading="lazy" alt=""></div>
+        <div class="gal-item"><img src="assets/img/10-bw.jpg" loading="lazy" alt=""></div>
+      </div>
+      <div class="gal-arrow next" id="galNext">›</div>
     </div>
     <div class="gal-dots" id="galDots"></div>
   </section>
 
-  <section class="wrap">
+  <section class="wrap reveal">
+    <div class="ornament"><span>✦</span></div>
     <span class="section-kicker">In motion</span>
     <h2 class="section-title">And a couple of clips</h2>
     <div class="videos">
@@ -427,7 +531,7 @@
     </div>
   </section>
 
-  <section class="wrap closing">
+  <section class="wrap closing reveal">
     <span class="big-heart">🤍</span>
     <h2>That's all, Ummu.</h2>
     <p>No big ask, no apology, just a reminder that you're adored exactly as you are. Go on with your beautiful day.</p>
@@ -478,7 +582,7 @@
   document.body.style.overflow = 'hidden';
   envelope.addEventListener('click', openGate);
 
-  // gallery dots
+  // gallery dots + cover-flow active card
   var gallery = document.getElementById('gallery');
   var dotsWrap = document.getElementById('galDots');
   var items = gallery.querySelectorAll('.gal-item');
@@ -488,10 +592,52 @@
     dotsWrap.appendChild(d);
   });
   var dots = dotsWrap.querySelectorAll('span');
-  gallery.addEventListener('scroll', function(){
-    var idx = Math.round(gallery.scrollLeft / (items[0].offsetWidth + 16));
+  function updateGallery(){
+    var step = items[0].offsetWidth + 16;
+    var idx = Math.round(gallery.scrollLeft / step);
+    idx = Math.max(0, Math.min(items.length-1, idx));
     dots.forEach(function(d,i){ d.classList.toggle('active', i===idx); });
-  }, { passive:true });
+    items.forEach(function(it,i){ it.classList.toggle('active-card', i===idx); });
+  }
+  gallery.addEventListener('scroll', updateGallery, { passive:true });
+  updateGallery();
+
+  // nav arrows
+  var galPrev = document.getElementById('galPrev');
+  var galNext = document.getElementById('galNext');
+  function galStep(dir){
+    var step = items[0].offsetWidth + 16;
+    gallery.scrollBy({ left: dir*step, behavior:'smooth' });
+  }
+  galPrev.addEventListener('click', function(){ galStep(-1); });
+  galNext.addEventListener('click', function(){ galStep(1); });
+
+  // swipe hint fades away after first interaction
+  var swipeHint = document.getElementById('swipeHint');
+  var hideHint = function(){
+    swipeHint.classList.add('faded');
+    gallery.removeEventListener('scroll', hideHint);
+    gallery.removeEventListener('touchstart', hideHint);
+  };
+  gallery.addEventListener('scroll', hideHint, { passive:true, once:true });
+  gallery.addEventListener('touchstart', hideHint, { passive:true, once:true });
+  setTimeout(hideHint, 6000);
+
+  // scroll-reveal for sections
+  var revealEls = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var revealObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold:0.15, rootMargin:'0px 0px -40px 0px' });
+    revealEls.forEach(function(el){ revealObserver.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('in'); });
+  }
 
   // confetti burst button
   var burstBtn = document.getElementById('burstBtn');
