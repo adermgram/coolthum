@@ -459,14 +459,20 @@
   .gal-arrow.prev{ left:-6px; }
   .gal-arrow.next{ right:-6px; }
   .swipe-hint{
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    margin:2px 0 10px;
-    font-size:12.5px; letter-spacing:.5px;
+    text-align:center;
+    margin:2px 0 12px;
+    font-size:12.5px; letter-spacing:.3px;
     color:var(--rose);
     transition: opacity .5s ease;
   }
+  .swipe-hint .hint-sub{
+    margin-top:3px;
+    font-size:11.5px;
+    opacity:.85;
+  }
   .swipe-hint .hand{
     display:inline-block;
+    margin-right:4px;
     animation: swipeMove 1.6s ease-in-out infinite;
     font-size:15px;
   }
@@ -536,14 +542,18 @@
       <div class="reason"><span class="emoji">✨</span><p>You light up every room without even trying</p></div>
       <div class="reason"><span class="emoji">💅</span><p>Your style is unmatched, every single time</p></div>
       <div class="reason"><span class="emoji">🤍</span><p>You're simply you — and that's more than enough</p></div>
+      <div class="reason"><span class="emoji">😍</span><p>I love you, plainly and completely — today and always</p></div>
     </div>
   </section>
 
-  <section class="wrap reveal">
+  <section class="wrap reveal" id="gallerySection">
     <div class="ornament"><span>✦</span></div>
     <span class="section-kicker">Swipe through</span>
     <h2 class="section-title">A few favorite moments</h2>
-    <div class="swipe-hint" id="swipeHint"><span class="hand">👉</span> swipe to see more</div>
+    <div class="swipe-hint" id="swipeHint">
+      <div><span class="hand">👉</span>swipe to see more</div>
+      <div class="hint-sub">🤍 double-tap a photo to send love</div>
+    </div>
     <div class="gallery-wrap">
       <div class="gal-arrow prev" id="galPrev">‹</div>
       <div class="gallery-scroller" id="gallery">
@@ -648,28 +658,39 @@
   updateGallery();
 
   // double-tap a photo to drop a heart, Instagram-style
+  function dropHeart(item, x, y){
+    var h = document.createElement('div');
+    h.className = 'heart-pop';
+    h.textContent = '🤍';
+    if(typeof x === 'number'){
+      h.style.left = x + 'px';
+      h.style.top = y + 'px';
+    }
+    item.appendChild(h);
+    if(navigator.vibrate){ try{ navigator.vibrate(15); }catch(err){} }
+    setTimeout(function(){ h.remove(); }, 900);
+  }
   items.forEach(function(item){
     var lastTap = 0;
     item.addEventListener('click', function(e){
       var now = Date.now();
       if(now - lastTap < 320){
         var rect = item.getBoundingClientRect();
-        var h = document.createElement('div');
-        h.className = 'heart-pop';
-        h.textContent = '🤍';
-        if(e.clientX){
-          h.style.left = (e.clientX - rect.left) + 'px';
-          h.style.top = (e.clientY - rect.top) + 'px';
-        }
-        item.appendChild(h);
-        if(navigator.vibrate){ try{ navigator.vibrate(15); }catch(err){} }
-        setTimeout(function(){ h.remove(); }, 900);
+        dropHeart(item, e.clientX ? (e.clientX - rect.left) : undefined, e.clientY ? (e.clientY - rect.top) : undefined);
         lastTap = 0;
       } else {
         lastTap = now;
       }
     });
   });
+
+  // show the double-tap trick once, automatically, so she actually discovers it
+  var demoShown = false;
+  function runHeartDemo(){
+    if(demoShown) return;
+    demoShown = true;
+    setTimeout(function(){ dropHeart(items[0]); }, 1000);
+  }
 
   // nav arrows
   var galPrev = document.getElementById('galPrev');
@@ -700,6 +721,7 @@
         if(entry.isIntersecting){
           entry.target.classList.add('in');
           revealObserver.unobserve(entry.target);
+          if(entry.target.id === 'gallerySection'){ runHeartDemo(); }
         }
       });
     }, { threshold:0.15, rootMargin:'0px 0px -40px 0px' });
