@@ -557,15 +557,15 @@
     <div class="gallery-wrap">
       <div class="gal-arrow prev" id="galPrev">‹</div>
       <div class="gallery-scroller" id="gallery">
-        <div class="gal-item"><img src="assets/img/01-cake.jpg" loading="lazy" alt="Coolthum holding a birthday cake"></div>
-        <div class="gal-item"><img src="assets/img/03-red.jpg" loading="lazy" alt="Coolthum smiling in a red outfit"></div>
-        <div class="gal-item"><img src="assets/img/08-purple-gown.jpg" loading="lazy" alt="Coolthum in a purple sequin gown"></div>
-        <div class="gal-item"><img src="assets/img/04-denim-smile.jpg" loading="lazy" alt="Coolthum smiling in a denim jacket"></div>
-        <div class="gal-item"><img src="assets/img/02-closeup.jpg" loading="lazy" alt="Close-up of Coolthum"></div>
-        <div class="gal-item"><img src="assets/img/09-sunglasses.jpg" loading="lazy" alt="Coolthum wearing sunglasses outdoors"></div>
-        <div class="gal-item"><img src="assets/img/05-denim-profile.jpg" loading="lazy" alt="Coolthum looking to the side"></div>
-        <div class="gal-item"><img src="assets/img/06-denim-stand.jpg" loading="lazy" alt="Coolthum standing, smiling"></div>
-        <div class="gal-item"><img src="assets/img/10-bw.jpg" loading="lazy" alt="Black and white portrait of Coolthum"></div>
+        <div class="gal-item"><img data-src="assets/img/01-cake.jpg" alt="Coolthum holding a birthday cake"></div>
+        <div class="gal-item"><img data-src="assets/img/03-red.jpg" alt="Coolthum smiling in a red outfit"></div>
+        <div class="gal-item"><img data-src="assets/img/08-purple-gown.jpg" alt="Coolthum in a purple sequin gown"></div>
+        <div class="gal-item"><img data-src="assets/img/04-denim-smile.jpg" alt="Coolthum smiling in a denim jacket"></div>
+        <div class="gal-item"><img data-src="assets/img/02-closeup.jpg" alt="Close-up of Coolthum"></div>
+        <div class="gal-item"><img data-src="assets/img/09-sunglasses.jpg" alt="Coolthum wearing sunglasses outdoors"></div>
+        <div class="gal-item"><img data-src="assets/img/05-denim-profile.jpg" alt="Coolthum looking to the side"></div>
+        <div class="gal-item"><img data-src="assets/img/06-denim-stand.jpg" alt="Coolthum standing, smiling"></div>
+        <div class="gal-item"><img data-src="assets/img/10-bw.jpg" alt="Black and white portrait of Coolthum"></div>
       </div>
       <div class="gal-arrow next" id="galNext">›</div>
     </div>
@@ -657,6 +657,25 @@
   gallery.addEventListener('scroll', updateGallery, { passive:true });
   updateGallery();
 
+  // load each photo only as it's about to be swiped into view, not all 9 at once
+  if('IntersectionObserver' in window){
+    var imgObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          var img = entry.target;
+          if(img.dataset.src){ img.src = img.dataset.src; img.removeAttribute('data-src'); }
+          imgObserver.unobserve(img);
+        }
+      });
+    }, { root: gallery, rootMargin: '0px 200px', threshold: 0.01 });
+    items.forEach(function(it){ imgObserver.observe(it.querySelector('img')); });
+  } else {
+    items.forEach(function(it){
+      var img = it.querySelector('img');
+      if(img.dataset.src){ img.src = img.dataset.src; }
+    });
+  }
+
   // double-tap a photo to drop a heart, Instagram-style
   function dropHeart(item, x, y){
     var h = document.createElement('div');
@@ -711,7 +730,6 @@
   };
   gallery.addEventListener('scroll', hideHint, { passive:true, once:true });
   gallery.addEventListener('touchstart', hideHint, { passive:true, once:true });
-  setTimeout(hideHint, 6000);
 
   // scroll-reveal for sections
   var revealEls = document.querySelectorAll('.reveal');
@@ -721,13 +739,17 @@
         if(entry.isIntersecting){
           entry.target.classList.add('in');
           revealObserver.unobserve(entry.target);
-          if(entry.target.id === 'gallerySection'){ runHeartDemo(); }
+          if(entry.target.id === 'gallerySection'){
+            runHeartDemo();
+            setTimeout(hideHint, 6000);
+          }
         }
       });
     }, { threshold:0.15, rootMargin:'0px 0px -40px 0px' });
     revealEls.forEach(function(el){ revealObserver.observe(el); });
   } else {
     revealEls.forEach(function(el){ el.classList.add('in'); });
+    setTimeout(hideHint, 6000);
   }
 
   // lazy-load each video just before it scrolls into view, then autoplay it
