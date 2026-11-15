@@ -459,16 +459,23 @@
   .gal-arrow.prev{ left:-6px; }
   .gal-arrow.next{ right:-6px; }
   .swipe-hint{
+    width:max-content;
+    max-width:88%;
+    margin:2px auto 16px;
+    background: linear-gradient(135deg, var(--plum), var(--plum-deep));
+    color:#fff8f3;
     text-align:center;
-    margin:2px 0 12px;
-    font-size:12.5px; letter-spacing:.3px;
-    color:var(--rose);
-    transition: opacity .5s ease;
+    padding:11px 20px;
+    border-radius:30px;
+    font-size:12.5px; letter-spacing:.3px; font-weight:500;
+    box-shadow: 0 16px 28px -14px rgba(58,36,54,.55);
+    transition: opacity .5s ease, transform .5s ease;
+    animation: hintPop .5s cubic-bezier(.22,1,.36,1), hintGlow 1.8s ease-in-out .5s infinite;
   }
   .swipe-hint .hint-sub{
-    margin-top:3px;
+    margin-top:4px;
     font-size:11.5px;
-    opacity:.85;
+    opacity:.92;
   }
   .swipe-hint .hand{
     display:inline-block;
@@ -480,7 +487,15 @@
     0%,100%{ transform:translateX(0); }
     50%{ transform:translateX(10px); }
   }
-  .swipe-hint.faded{ opacity:0; }
+  @keyframes hintPop{
+    0%{ transform:scale(.7); opacity:0; }
+    100%{ transform:scale(1); opacity:1; }
+  }
+  @keyframes hintGlow{
+    0%,100%{ box-shadow: 0 16px 28px -14px rgba(58,36,54,.55); }
+    50%{ box-shadow: 0 16px 32px -10px rgba(217,139,163,.65); }
+  }
+  .swipe-hint.faded{ opacity:0; transform:scale(.92); pointer-events:none; }
   .gal-item{ transform:scale(.93); opacity:.72; }
   .gal-item.active-card{ transform:scale(1.04); opacity:1; }
 </style>
@@ -703,15 +718,15 @@
   galPrev.addEventListener('click', function(){ galStep(-1); });
   galNext.addEventListener('click', function(){ galStep(1); });
 
-  // swipe hint fades away after first interaction
+  // swipe hint fades away once she's actually swiped (not just touched the area)
   var swipeHint = document.getElementById('swipeHint');
+  var hintShownAt = 0;
   var hideHint = function(){
+    if(Date.now() - hintShownAt < 1500) return; // ignore scroll noise right as it appears
     swipeHint.classList.add('faded');
     gallery.removeEventListener('scroll', hideHint);
-    gallery.removeEventListener('touchstart', hideHint);
   };
-  gallery.addEventListener('scroll', hideHint, { passive:true, once:true });
-  gallery.addEventListener('touchstart', hideHint, { passive:true, once:true });
+  gallery.addEventListener('scroll', hideHint, { passive:true });
 
   // scroll-reveal for sections
   var revealEls = document.querySelectorAll('.reveal');
@@ -723,7 +738,8 @@
           revealObserver.unobserve(entry.target);
           if(entry.target.id === 'gallerySection'){
             runHeartDemo();
-            setTimeout(hideHint, 6000);
+            hintShownAt = Date.now();
+            setTimeout(hideHint, 8000);
           }
         }
       });
@@ -731,7 +747,8 @@
     revealEls.forEach(function(el){ revealObserver.observe(el); });
   } else {
     revealEls.forEach(function(el){ el.classList.add('in'); });
-    setTimeout(hideHint, 6000);
+    hintShownAt = Date.now();
+    setTimeout(hideHint, 8000);
   }
 
   // videos download right away in the background (preload="auto", low priority);
