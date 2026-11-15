@@ -279,6 +279,7 @@
   .gallery-scroller::-webkit-scrollbar{display:none;}
   .gallery-scroller{scrollbar-width:none;}
   .gal-item{
+    position:relative;
     flex:0 0 auto;
     width: 72vw;
     max-width:300px;
@@ -290,7 +291,28 @@
     background:#fff;
     transition: transform .35s ease, opacity .35s ease;
   }
-  .gal-item img{width:100%;display:block;aspect-ratio:4/5;object-fit:cover;}
+  .gal-item img{
+    width:100%;display:block;aspect-ratio:4/5;object-fit:cover;
+    touch-action:manipulation;
+    -webkit-user-select:none; user-select:none;
+    -webkit-touch-callout:none;
+  }
+  .heart-pop{
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    font-size:66px;
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,.35));
+    pointer-events:none;
+    z-index:6;
+    animation: heartPop .85s ease forwards;
+  }
+  @keyframes heartPop{
+    0%{ transform:translate(-50%,-50%) scale(0); opacity:0; }
+    18%{ transform:translate(-50%,-50%) scale(1.2); opacity:1; }
+    32%{ transform:translate(-50%,-50%) scale(.96); opacity:1; }
+    75%{ opacity:1; }
+    100%{ transform:translate(-50%,-50%) scale(1.35); opacity:0; }
+  }
   .gal-dots{display:flex;justify-content:center;gap:6px;margin-top:4px;}
   .gal-dots span{width:6px;height:6px;border-radius:50%;background:var(--blush-deep);transition:.3s;}
   .gal-dots span.active{background:var(--rose);width:18px;border-radius:4px;}
@@ -349,6 +371,22 @@
   @media (min-width:520px){
     .gal-item{width:280px;}
   }
+
+  /* tighten up on small phones */
+  @media (max-width:380px){
+    .wrap{ padding:0 16px; }
+    .card{ padding:26px 18px; }
+    .hero h1{ font-size: clamp(38px, 12vw, 64px); }
+    .reasons{ gap:10px; }
+    .reason{ padding:15px 10px; }
+  }
+  @media (max-width:340px){
+    .reason{ flex-basis:100%; }
+  }
+
+  /* safe-area for notched / home-indicator phones */
+  body{ padding-bottom: env(safe-area-inset-bottom); }
+  .envelope-scene{ padding-bottom: env(safe-area-inset-bottom); }
 
   /* ambient blobs */
   .blob{
@@ -528,10 +566,10 @@
     <h2 class="section-title">And a couple of clips</h2>
     <div class="videos">
       <div class="vid-item">
-        <video src="assets/video/clip-1.mp4" playsinline muted loop preload="metadata"></video>
+        <video src="assets/video/clip-1.mp4" playsinline muted loop autoplay preload="auto"></video>
       </div>
       <div class="vid-item">
-        <video src="assets/video/clip-2.mp4" playsinline muted loop preload="metadata"></video>
+        <video src="assets/video/clip-2.mp4" playsinline muted loop autoplay preload="auto"></video>
       </div>
     </div>
   </section>
@@ -607,6 +645,30 @@
   gallery.addEventListener('scroll', updateGallery, { passive:true });
   updateGallery();
 
+  // double-tap a photo to drop a heart, Instagram-style
+  items.forEach(function(item){
+    var lastTap = 0;
+    item.addEventListener('click', function(e){
+      var now = Date.now();
+      if(now - lastTap < 320){
+        var rect = item.getBoundingClientRect();
+        var h = document.createElement('div');
+        h.className = 'heart-pop';
+        h.textContent = '🤍';
+        if(e.clientX){
+          h.style.left = (e.clientX - rect.left) + 'px';
+          h.style.top = (e.clientY - rect.top) + 'px';
+        }
+        item.appendChild(h);
+        if(navigator.vibrate){ try{ navigator.vibrate(15); }catch(err){} }
+        setTimeout(function(){ h.remove(); }, 900);
+        lastTap = 0;
+      } else {
+        lastTap = now;
+      }
+    });
+  });
+
   // nav arrows
   var galPrev = document.getElementById('galPrev');
   var galNext = document.getElementById('galNext');
@@ -642,20 +704,6 @@
     revealEls.forEach(function(el){ revealObserver.observe(el); });
   } else {
     revealEls.forEach(function(el){ el.classList.add('in'); });
-  }
-
-  // only play each clip while it's actually on screen
-  var clips = document.querySelectorAll('.vid-item video');
-  if('IntersectionObserver' in window){
-    var clipObserver = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if(entry.isIntersecting){ entry.target.play().catch(function(){}); }
-        else{ entry.target.pause(); }
-      });
-    }, { threshold:0.6 });
-    clips.forEach(function(v){ clipObserver.observe(v); });
-  } else {
-    clips.forEach(function(v){ v.autoplay = true; });
   }
 
   // confetti burst button
