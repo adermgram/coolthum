@@ -515,7 +515,7 @@
     <h1>Hi <em>Coolthum</em> 🤍</h1>
     <div class="names">Ummukhulthm Mahmud · aka Coolthum</div>
     <div class="hero-portrait">
-      <img src="assets/img/07-henna.jpg" alt="Coolthum smiling" loading="eager">
+      <img src="assets/img/07-henna.jpg" alt="Coolthum smiling" loading="eager" fetchpriority="high">
     </div>
     <div class="scroll-cue">keep scrolling<span>↓</span></div>
   </section>
@@ -557,15 +557,15 @@
     <div class="gallery-wrap">
       <div class="gal-arrow prev" id="galPrev">‹</div>
       <div class="gallery-scroller" id="gallery">
-        <div class="gal-item"><img data-src="assets/img/01-cake.jpg" alt="Coolthum holding a birthday cake"></div>
-        <div class="gal-item"><img data-src="assets/img/03-red.jpg" alt="Coolthum smiling in a red outfit"></div>
-        <div class="gal-item"><img data-src="assets/img/08-purple-gown.jpg" alt="Coolthum in a purple sequin gown"></div>
-        <div class="gal-item"><img data-src="assets/img/04-denim-smile.jpg" alt="Coolthum smiling in a denim jacket"></div>
-        <div class="gal-item"><img data-src="assets/img/02-closeup.jpg" alt="Close-up of Coolthum"></div>
-        <div class="gal-item"><img data-src="assets/img/09-sunglasses.jpg" alt="Coolthum wearing sunglasses outdoors"></div>
-        <div class="gal-item"><img data-src="assets/img/05-denim-profile.jpg" alt="Coolthum looking to the side"></div>
-        <div class="gal-item"><img data-src="assets/img/06-denim-stand.jpg" alt="Coolthum standing, smiling"></div>
-        <div class="gal-item"><img data-src="assets/img/10-bw.jpg" alt="Black and white portrait of Coolthum"></div>
+        <div class="gal-item"><img src="assets/img/01-cake.jpg" loading="eager" fetchpriority="high" alt="Coolthum holding a birthday cake"></div>
+        <div class="gal-item"><img src="assets/img/03-red.jpg" loading="eager" fetchpriority="low" alt="Coolthum smiling in a red outfit"></div>
+        <div class="gal-item"><img src="assets/img/08-purple-gown.jpg" loading="eager" fetchpriority="low" alt="Coolthum in a purple sequin gown"></div>
+        <div class="gal-item"><img src="assets/img/04-denim-smile.jpg" loading="eager" fetchpriority="low" alt="Coolthum smiling in a denim jacket"></div>
+        <div class="gal-item"><img src="assets/img/02-closeup.jpg" loading="eager" fetchpriority="low" alt="Close-up of Coolthum"></div>
+        <div class="gal-item"><img src="assets/img/09-sunglasses.jpg" loading="eager" fetchpriority="low" alt="Coolthum wearing sunglasses outdoors"></div>
+        <div class="gal-item"><img src="assets/img/05-denim-profile.jpg" loading="eager" fetchpriority="low" alt="Coolthum looking to the side"></div>
+        <div class="gal-item"><img src="assets/img/06-denim-stand.jpg" loading="eager" fetchpriority="low" alt="Coolthum standing, smiling"></div>
+        <div class="gal-item"><img src="assets/img/10-bw.jpg" loading="eager" fetchpriority="low" alt="Black and white portrait of Coolthum"></div>
       </div>
       <div class="gal-arrow next" id="galNext">›</div>
     </div>
@@ -578,10 +578,10 @@
     <h2 class="section-title">And a couple of clips</h2>
     <div class="videos">
       <div class="vid-item">
-        <video class="lazy-video" data-src="assets/video/clip-1.mp4" playsinline muted loop preload="none"></video>
+        <video class="play-on-view" src="assets/video/clip-1.mp4" playsinline muted loop preload="auto" fetchpriority="low"></video>
       </div>
       <div class="vid-item">
-        <video class="lazy-video" data-src="assets/video/clip-2.mp4" playsinline muted loop preload="none"></video>
+        <video class="play-on-view" src="assets/video/clip-2.mp4" playsinline muted loop preload="auto" fetchpriority="low"></video>
       </div>
     </div>
   </section>
@@ -657,24 +657,6 @@
   gallery.addEventListener('scroll', updateGallery, { passive:true });
   updateGallery();
 
-  // load each photo only as it's about to be swiped into view, not all 9 at once
-  if('IntersectionObserver' in window){
-    var imgObserver = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if(entry.isIntersecting){
-          var img = entry.target;
-          if(img.dataset.src){ img.src = img.dataset.src; img.removeAttribute('data-src'); }
-          imgObserver.unobserve(img);
-        }
-      });
-    }, { root: gallery, rootMargin: '0px 200px', threshold: 0.01 });
-    items.forEach(function(it){ imgObserver.observe(it.querySelector('img')); });
-  } else {
-    items.forEach(function(it){
-      var img = it.querySelector('img');
-      if(img.dataset.src){ img.src = img.dataset.src; }
-    });
-  }
 
   // double-tap a photo to drop a heart, Instagram-style
   function dropHeart(item, x, y){
@@ -752,21 +734,19 @@
     setTimeout(hideHint, 6000);
   }
 
-  // lazy-load each video just before it scrolls into view, then autoplay it
-  var lazyVideos = document.querySelectorAll('.lazy-video');
+  // videos download right away in the background (preload="auto", low priority);
+  // only start/stop actual playback based on visibility
+  var bgVideos = document.querySelectorAll('.play-on-view');
   if('IntersectionObserver' in window){
     var vidObserver = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
-        var v = entry.target;
-        if(entry.isIntersecting){
-          if(!v.src){ v.src = v.dataset.src; v.load(); }
-          v.play().catch(function(){});
-        }
+        if(entry.isIntersecting){ entry.target.play().catch(function(){}); }
+        else{ entry.target.pause(); }
       });
     }, { rootMargin:'400px 0px', threshold:0.1 });
-    lazyVideos.forEach(function(v){ vidObserver.observe(v); });
+    bgVideos.forEach(function(v){ vidObserver.observe(v); });
   } else {
-    lazyVideos.forEach(function(v){ v.src = v.dataset.src; v.autoplay = true; });
+    bgVideos.forEach(function(v){ v.autoplay = true; });
   }
 
   // confetti burst button
