@@ -185,6 +185,7 @@
     box-shadow: var(--shadow);
     position:relative;
     border: 6px solid #fff;
+    background: linear-gradient(160deg, var(--blush), var(--gold-soft));
     transform: rotate(-2deg);
   }
   .hero-portrait img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -288,7 +289,7 @@
     overflow:hidden;
     box-shadow: var(--shadow);
     border:5px solid #fff;
-    background:#fff;
+    background: linear-gradient(160deg, var(--blush), var(--gold-soft));
     transition: transform .35s ease, opacity .35s ease;
   }
   .gal-item img{
@@ -391,13 +392,14 @@
   /* ambient blobs */
   .blob{
     position:fixed;
-    width:50vw;height:50vw;
-    max-width:420px;max-height:420px;
+    width:46vw;height:46vw;
+    max-width:380px;max-height:380px;
     border-radius:50%;
-    filter:blur(70px);
-    opacity:.45;
+    filter:blur(50px);
+    opacity:.4;
     z-index:0;
     pointer-events:none;
+    will-change: transform;
     animation: drift 22s ease-in-out infinite;
   }
   .blob.b1{background:var(--blush-deep); top:-10%; left:-15%;}
@@ -566,10 +568,10 @@
     <h2 class="section-title">And a couple of clips</h2>
     <div class="videos">
       <div class="vid-item">
-        <video src="assets/video/clip-1.mp4" playsinline muted loop autoplay preload="auto"></video>
+        <video class="lazy-video" data-src="assets/video/clip-1.mp4" playsinline muted loop preload="none"></video>
       </div>
       <div class="vid-item">
-        <video src="assets/video/clip-2.mp4" playsinline muted loop autoplay preload="auto"></video>
+        <video class="lazy-video" data-src="assets/video/clip-2.mp4" playsinline muted loop preload="none"></video>
       </div>
     </div>
   </section>
@@ -704,6 +706,23 @@
     revealEls.forEach(function(el){ revealObserver.observe(el); });
   } else {
     revealEls.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  // lazy-load each video just before it scrolls into view, then autoplay it
+  var lazyVideos = document.querySelectorAll('.lazy-video');
+  if('IntersectionObserver' in window){
+    var vidObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var v = entry.target;
+        if(entry.isIntersecting){
+          if(!v.src){ v.src = v.dataset.src; v.load(); }
+          v.play().catch(function(){});
+        }
+      });
+    }, { rootMargin:'400px 0px', threshold:0.1 });
+    lazyVideos.forEach(function(v){ vidObserver.observe(v); });
+  } else {
+    lazyVideos.forEach(function(v){ v.src = v.dataset.src; v.autoplay = true; });
   }
 
   // confetti burst button
